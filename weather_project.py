@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from tkinter import Tk, Label, Button, StringVar, OptionMenu
+from tkinter import Tk, Label, Button, StringVar, OptionMenu, Frame
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
@@ -69,8 +69,12 @@ window = Tk()
 window.title("Weather Data Visualization")
 
 # Add label
-label = Label(window, text="Select a graph to display:")
+label = Label(window, text="Select a graph to display:", background='yellow')
 label.pack()
+
+# Frame to hold dropdown menu and button
+frame = Frame(window)
+frame.pack(side='top', padx=5, pady=5)
 
 # Options for dropdown menu
 graph_options = [
@@ -84,14 +88,26 @@ graph_choice = StringVar(window)
 graph_choice.set(graph_options[0])
 
 # Dropdown menu
-dropdown_menu = OptionMenu(window, graph_choice, *graph_options)
-dropdown_menu.pack()
+dropdown_menu = OptionMenu(frame, graph_choice, *graph_options)
+dropdown_menu.pack(side='left', padx=5, pady=5)
 
 # Button to display selected graph
-button = Button(window, text="Display Graph", command=display_graph)
-button.pack()
+button = Button(frame, text="Display Graph", command=display_graph)
+button.pack(side='left', padx=5, pady=5)
 
 # Global variable to store graph canvas
 canvas = None
+
+# Function to display graph canvas
+def display_graph_canvas():
+    global canvas
+    if canvas:
+        canvas.get_tk_widget().destroy()
+    canvas = FigureCanvasTkAgg(plt.gcf(), master=window)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
+
+# Call the function to display graph canvas
+display_graph_canvas()
 
 window.mainloop()
