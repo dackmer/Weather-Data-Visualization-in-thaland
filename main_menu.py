@@ -3,6 +3,7 @@ from tkinter import Tk, Button, Label, Toplevel, Listbox, Scrollbar, MULTIPLE
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from pandastable import Table
+import subprocess
 
 
 # Function to read CSV file into DataFrame
@@ -13,6 +14,7 @@ def read_data():
 # Function to display weather visualization page
 def show_weather_visualization():
     window.destroy()
+    subprocess.run(["python", "weather_project.py"])
 
 
 # Function to exit the application

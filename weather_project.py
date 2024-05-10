@@ -23,14 +23,15 @@ def display_graph():
         return
 
     # Display the selected number of graphs
-    for choice in selected_options:
+    for idx, choice in enumerate(selected_options, 1):
         if choice == "Distribution Graph: Precipitation (histogram)":
             # Distribution Graph: Precipitation (histogram)
             plt.figure(figsize=(10, 6))
-            plt.hist(df['Precipitation'], bins=10, color=hist_color_entry.get(), edgecolor='black')
-            plt.title(title_entry.get() if title_entry.get() else 'Precipitation Distribution')
-            plt.xlabel(x_label_entry.get() if x_label_entry.get() else 'Precipitation (in)')
-            plt.ylabel(y_label_entry.get() if y_label_entry.get() else 'Frequency')
+            color = hist_color_entry.get() if hist_color_entry.get() else 'blue'  # Default color if entry is empty
+            plt.hist(df['Precipitation'], bins=10, color=color, edgecolor='black')
+            plt.title(title_entry.get() if title_entry.get() else f'Graph {idx}')
+            plt.xlabel(x_label_entry.get() if x_label_entry.get() else 'X Label')
+            plt.ylabel(y_label_entry.get() if y_label_entry.get() else 'Y Label')
             plt.grid(True)
             plt.tight_layout()
             canvas = FigureCanvasTkAgg(plt.gcf(), master=window)
@@ -41,9 +42,9 @@ def display_graph():
             # Line Chart: Temperature over Time
             plt.figure(figsize=(10, 6))
             plt.plot(df['Time'], df['Temperature'], marker='o', linestyle='-')
-            plt.title(title_entry.get() if title_entry.get() else 'Temperature Variation over Time')
-            plt.xlabel(x_label_entry.get() if x_label_entry.get() else 'Time')
-            plt.ylabel(y_label_entry.get() if y_label_entry.get() else 'Temperature (°F)')
+            plt.title(title_entry.get() if title_entry.get() else f'Graph {idx}')
+            plt.xlabel(x_label_entry.get() if x_label_entry.get() else 'X Label')
+            plt.ylabel(y_label_entry.get() if y_label_entry.get() else 'Y Label')
             plt.xticks(rotation=45)
             plt.grid(True)
             plt.tight_layout()
@@ -54,16 +55,18 @@ def display_graph():
         elif choice == "Bar Chart: Weather conditions frequency":
             # Bar Chart: Weather conditions frequency
             plt.figure(figsize=(10, 6))
-            df['Weather'].value_counts().plot(kind='bar', color=bar_color_entry.get() if bar_color_entry.get() else 'lightgreen')
-            plt.title(title_entry.get() if title_entry.get() else 'Weather Conditions Frequency')
-            plt.xlabel(x_label_entry.get() if x_label_entry.get() else 'Weather Condition')
-            plt.ylabel(y_label_entry.get() if y_label_entry.get() else 'Frequency')
+            color = bar_color_entry.get() if bar_color_entry.get() else 'lightgreen'  # Default color if entry is empty
+            df['Weather'].value_counts().plot(kind='bar', color=color)
+            plt.title(title_entry.get() if title_entry.get() else f'Graph {idx}')
+            plt.xlabel(x_label_entry.get() if x_label_entry.get() else 'X Label')
+            plt.ylabel(y_label_entry.get() if y_label_entry.get() else 'Y Label')
             plt.xticks(rotation=45)
             plt.grid(axis='y')
             plt.tight_layout()
             canvas = FigureCanvasTkAgg(plt.gcf(), master=window)
             canvas.draw()
             canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
+
 
 
 # Read the CSV file into a DataFrame
