@@ -2,8 +2,13 @@ from tkinter import Tk, Label, Button, StringVar, OptionMenu, Frame, Entry, Labe
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import subprocess
+
+# Global variable to store graph canvas
+canvas = None
 
 
+# Function to display graph
 def display_graph():
     global canvas
 
@@ -22,48 +27,53 @@ def display_graph():
         print("Error: Please select at least one graph.")
         return
 
+    # Create a figure with subplots for all selected graphs
+    if num_graphs == 1:
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax = [ax]  # Convert to list for uniform handling
+    else:
+        fig, ax = plt.subplots(num_graphs, 1, figsize=(10, 6 * num_graphs))
+
+    # Add space between subplots
+    plt.subplots_adjust(hspace=0.5)
+
     # Display the selected number of graphs
-    for choice in selected_options:
+    if num_graphs == 1:
+        axs = ax  # If only one graph, use the single Axes object
+    for idx, (choice, axs) in enumerate(zip(selected_options, ax), 1):
         if choice == "Distribution Graph: Precipitation (histogram)":
             # Distribution Graph: Precipitation (histogram)
-            plt.figure(figsize=(10, 6))
-            plt.hist(df['Precipitation'], bins=10, color=hist_color_entry.get(), edgecolor='black')
-            plt.title(title_entry.get() if title_entry.get() else 'Precipitation Distribution')
-            plt.xlabel(x_label_entry.get() if x_label_entry.get() else 'Precipitation (in)')
-            plt.ylabel(y_label_entry.get() if y_label_entry.get() else 'Frequency')
-            plt.grid(True)
-            plt.tight_layout()
-            canvas = FigureCanvasTkAgg(plt.gcf(), master=window)
-            canvas.draw()
-            canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
+            color = hist_color_entry.get() if hist_color_entry.get() else 'blue'  # Default color if entry is empty
+            axs.hist(df['Precipitation'], bins=10, color=color, edgecolor='black')
+            axs.set_xlabel(x_label_entry.get() if x_label_entry.get() else 'X Label')
+            axs.set_ylabel(y_label_entry.get() if y_label_entry.get() else 'Y Label')
+            axs.grid(True)
+
 
         elif choice == "Line Chart: Temperature over time":
             # Line Chart: Temperature over Time
-            plt.figure(figsize=(10, 6))
-            plt.plot(df['Time'], df['Temperature'], marker='o', linestyle='-')
-            plt.title(title_entry.get() if title_entry.get() else 'Temperature Variation over Time')
-            plt.xlabel(x_label_entry.get() if x_label_entry.get() else 'Time')
-            plt.ylabel(y_label_entry.get() if y_label_entry.get() else 'Temperature (°F)')
-            plt.xticks(rotation=45)
-            plt.grid(True)
-            plt.tight_layout()
-            canvas = FigureCanvasTkAgg(plt.gcf(), master=window)
-            canvas.draw()
-            canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
+            axs.plot(df['Time'], df['Temperature'], marker='o', linestyle='-')
+            axs.set_xlabel(x_label_entry.get() if x_label_entry.get() else 'X Label')
+            axs.set_ylabel(y_label_entry.get() if y_label_entry.get() else 'Y Label')
+            axs.grid(True)
 
         elif choice == "Bar Chart: Weather conditions frequency":
             # Bar Chart: Weather conditions frequency
-            plt.figure(figsize=(10, 6))
-            df['Weather'].value_counts().plot(kind='bar', color=bar_color_entry.get() if bar_color_entry.get() else 'lightgreen')
-            plt.title(title_entry.get() if title_entry.get() else 'Weather Conditions Frequency')
-            plt.xlabel(x_label_entry.get() if x_label_entry.get() else 'Weather Condition')
-            plt.ylabel(y_label_entry.get() if y_label_entry.get() else 'Frequency')
-            plt.xticks(rotation=45)
-            plt.grid(axis='y')
-            plt.tight_layout()
-            canvas = FigureCanvasTkAgg(plt.gcf(), master=window)
-            canvas.draw()
-            canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
+            color = bar_color_entry.get() if bar_color_entry.get() else 'lightgreen'  # Default color if entry is empty
+            df['Weather'].value_counts().plot(kind='bar', color=color, ax=axs)
+            axs.set_xlabel(x_label_entry.get() if x_label_entry.get() else 'X Label')
+            axs.set_ylabel(y_label_entry.get() if y_label_entry.get() else 'Y Label')
+            axs.grid(axis='y')
+
+        # Set title with smaller font size
+        axs.set_title(title_entry.get() if title_entry.get() else f'Graph {idx}', fontsize=10)
+
+    plt.tight_layout()
+
+    # Display the figure in the Tkinter window
+    canvas = FigureCanvasTkAgg(fig, master=window)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
 
 
 # Read the CSV file into a DataFrame
@@ -103,9 +113,9 @@ for i in range(3):
     graph_choice = StringVar(window)
     graph_choice.set("Distribution Graph: Precipitation (histogram)")
     graph_dropdown_menu = OptionMenu(frame, graph_choice,
-                                      "Distribution Graph: Precipitation (histogram)",
-                                      "Line Chart: Temperature over time",
-                                      "Bar Chart: Weather conditions frequency")
+                                     "Distribution Graph: Precipitation (histogram)",
+                                     "Line Chart: Temperature over time",
+                                     "Bar Chart: Weather conditions frequency")
     graph_dropdown_menu.pack(side='left', padx=5, pady=5)
     graph_choices.append(graph_choice)
 
@@ -135,22 +145,21 @@ bar_color_entry = Entry(customization_frame)
 bar_color_entry.grid(row=4, column=1)
 
 # Button to display selected graphs
-button = Button(window, text="Display Graph", command=display_graph)
-button.pack(side='top', padx=5, pady=5)
+display_button_frame = Frame(window)
+display_button_frame.pack(side='top', padx=5, pady=5)
 
-# Global variable to store graph canvas
-canvas = None
+button = Button(display_button_frame, text="Display Graph", command=display_graph)
+button.pack(side='left', padx=5, pady=5)
 
-# Function to display graph canvas
-def display_graph_canvas():
-    global canvas
-    if canvas:
-        canvas.get_tk_widget().destroy()
-    canvas = FigureCanvasTkAgg(plt.gcf(), master=window)
-    canvas.draw()
-    canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
 
-# Call the function to display graph canvas
-display_graph_canvas()
+# Function to go back to main menu
+def back_to_main_menu():
+    window.destroy()
+    subprocess.run(["python", "main_menu.py"])
+
+
+# Button to go back to main menu
+main_menu_button = Button(display_button_frame, text="Main Menu", command=back_to_main_menu)
+main_menu_button.pack(side='left', padx=5, pady=5)
 
 window.mainloop()
