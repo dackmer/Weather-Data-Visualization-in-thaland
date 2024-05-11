@@ -3,6 +3,7 @@ from tkinter import Tk, Button, Label, Toplevel, Listbox, Scrollbar, MULTIPLE
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from pandastable import Table
+import subprocess
 
 
 # Function to read CSV file into DataFrame
@@ -13,6 +14,7 @@ def read_data():
 # Function to display weather visualization page
 def show_weather_visualization():
     window.destroy()
+    subprocess.run(["python", "weather_project.py"])
 
 
 # Function to exit the application
@@ -40,11 +42,16 @@ def compare_data():
         listbox.insert("end", column)
     listbox.pack(side="left", fill="both", expand=True)
 
+    # Create a canvas for plotting
+    canvas = FigureCanvasTkAgg(plt.figure(figsize=(10, 6)), master=comparison_window)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side="top", fill="both", expand=1)
+
     # Function to plot selected data
     def plot_comparison():
         selected_columns = [listbox.get(idx) for idx in listbox.curselection()]
         if len(selected_columns) >= 2:
-            plt.figure(figsize=(10, 6))
+            plt.clf()  # Clear the previous plot
             for column in selected_columns:
                 plt.plot(df.index, df[column], label=column)
             plt.title("Data Comparison")
@@ -54,10 +61,8 @@ def compare_data():
             plt.grid(True)
             plt.tight_layout()
 
-            # Display the plot
-            canvas = FigureCanvasTkAgg(plt.gcf(), master=comparison_window)
+            # Display the updated plot
             canvas.draw()
-            canvas.get_tk_widget().pack(side="top", fill="both", expand=1)
 
     # Button to plot selected data
     plot_button = Button(comparison_window, text="Plot Selected Data", command=plot_comparison)
